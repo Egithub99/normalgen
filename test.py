@@ -50,7 +50,8 @@ gemma_config = {
             "api_key": "lm-studio",
         },
     ],
-    "cache_seed": None,  # Disable caching.
+    "cache_seed": None, # Disable caching.
+    "temperature": 0.1,  
 }
 
 # Define the agents
@@ -58,14 +59,6 @@ user_proxy = autogen.UserProxyAgent(
     name="Admin",
     system_message="A human admin. Give the task, and send instructions to the structural engineer.",
     code_execution_config=False,
-)
-
-planner = autogen.AssistantAgent(
-    name="Planner",
-    system_message="""Planner. Given a task, please only use the task_decompostion.pdf file to determine what information is needed to complete the task.
-    Please note that the information will all be retrieved using the structural engineer.
-    """,
-    llm_config=gemma_config,
 )
 
 engineer = autogen.AssistantAgent(
@@ -84,12 +77,9 @@ def custom_speaker_selection_func(last_speaker, groupchat):
     messages = groupchat.messages
 
     if len(messages) <= 1:
-        return planner
-
-    if last_speaker is planner:
         return engineer
 
-    elif last_speaker is engineer:
+    if last_speaker is engineer:
         return writer
 
     elif last_speaker is writer:
@@ -99,7 +89,7 @@ def custom_speaker_selection_func(last_speaker, groupchat):
         return "auto"
 
 groupchat = autogen.GroupChat(
-    agents=[user_proxy, planner, engineer, writer],
+    agents=[user_proxy, engineer, writer],
     messages=[],
     max_round=20,
     speaker_selection_method=custom_speaker_selection_func,

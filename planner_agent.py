@@ -31,10 +31,10 @@ compressed_task_decomposition_content = compressed_task_decomposition_text[0]['c
 if len(compressed_task_decomposition_content) > CONTEXT_LENGTH_LIMIT:
     compressed_task_decomposition_content = compressed_task_decomposition_content[:CONTEXT_LENGTH_LIMIT]
 
-# Define system message and agent configuration for the task decomposition agent
-task_decomposition_system_message = (
+# Define system message and agent configuration for the planner agent
+planner_system_message = (
     "You are an expert in structural engineering. Based on the provided steps from the PDF, "
-    "please describe the steps needed for the conceptual design phase in structural engineering. "
+    "please name all the steps needed for the conceptual design phase in structural engineering. "
     "Please adhere to the following instructions:"
     "\n1. Only select the steps from the task_decomposition.pdf."
     "\n2. You cannot describe any other steps."
@@ -51,12 +51,12 @@ gemma_config = {
     "cache_seed": None,  # Disable caching.
 }
 
-# Define the task decomposition agent
-task_decomposition_agent = autogen.ConversableAgent(
-    name="task_decomposition_assistant",
+# Define the planner agent
+planner_agent = autogen.ConversableAgent(
+    name="planner_assistant",
     llm_config=gemma_config,
     max_consecutive_auto_reply=1,
-    system_message=task_decomposition_system_message,
+    system_message=planner_system_message,
     human_input_mode="NEVER",
 )
 
@@ -75,7 +75,7 @@ writer_agent = autogen.AssistantAgent(
 # Function to describe the task decomposition steps
 def describe_task_decomposition_steps(agent, task_decomposition_text):
     messages = [
-        {"role": "system", "content": task_decomposition_system_message},
+        {"role": "system", "content": planner_system_message},
         {"role": "user", "content": "Here is the relevant content from the PDF on task decomposition:\n" + task_decomposition_text}
     ]
     response = agent.generate_reply(messages)
@@ -90,10 +90,10 @@ def generate_blog_content(writer_agent, task_decomposition_response):
     response = writer_agent.generate_reply(messages)
     return response
 
-# Get the response from the task decomposition agent
-task_decomposition_response = describe_task_decomposition_steps(task_decomposition_agent, compressed_task_decomposition_content)
-print("Task Decomposition Response:\n", task_decomposition_response)
+# Get the response from the planner agent
+planner_response = describe_task_decomposition_steps(planner_agent, compressed_task_decomposition_content)
+print("Planner Response:\n", planner_response)
 
 # Get the blog content from the writer agent
-blog_content = generate_blog_content(writer_agent, task_decomposition_response)
+blog_content = generate_blog_content(writer_agent, planner_response)
 print("Generated Blog Content:\n", blog_content)
