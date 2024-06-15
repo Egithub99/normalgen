@@ -6,7 +6,7 @@ import autogen
 
 # Specify the path to the task decomposition PDF file
 TASK_DECOMPOSITION_PDF_PATH = 'task_decomposition.pdf'
-CONTEXT_LENGTH_LIMIT = 2048  # Define the context length limit
+CONTEXT_LENGTH_LIMIT = 6000  # Define the context length limit
 
 def extract_text_from_pdf(pdf_path):
     text = ""
@@ -31,6 +31,16 @@ compressed_task_decomposition_content = compressed_task_decomposition_text[0]['c
 if len(compressed_task_decomposition_content) > CONTEXT_LENGTH_LIMIT:
     compressed_task_decomposition_content = compressed_task_decomposition_content[:CONTEXT_LENGTH_LIMIT]
 
+# Define system message and agent configuration for the task decomposition agent
+task_decomposition_system_message = (
+    "You are an expert in structural engineering. Based on the provided steps from the PDF, "
+    "please describe the steps needed for the conceptual design phase in structural engineering. "
+    "You are an expert in structural engineering. Based on the provided steps from PDF, "
+    "Please describe the steps needed for the conceptual design phase in structural engineering. "
+    "Please adhere to the following instructions:"
+    "\n1. Only select the steps from the task_decomposition.pdf."
+    "\n2. You cannot describe any other steps."
+)
 
 gemma_config = {
     "config_list": [
@@ -40,38 +50,28 @@ gemma_config = {
             "api_key": "lm-studio",
         },
     ],
-    "cache_seed": None, # Disable caching.
-    "temperature": 0.1,  
+    "cache_seed": None,  # Disable caching.
 }
 
 # Define the agents
 user_proxy = autogen.UserProxyAgent(
     name="Admin",
-    system_message="A human admin. Give the task, and send instructions to the Engineer.",
+    system_message="A human admin. Give the task, and send instructions to the structural engineer.",
     code_execution_config=False,
 )
 
 planner = autogen.AssistantAgent(
     name="Planner",
-    system_message="""Planner.
-    "You are an expert in structural engineering. 
-    "Based on the provided steps from the PDF (task_decomposition.pdf), please describe the steps needed for the conceptual design phase in structural engineering. "
-    "Please adhere to the following instructions:"
-    "\n1. Only select the steps from the task_decomposition.pdf."
-    "\n2. You cannot describe any other steps."
+    system_message="""Planner. Given a task, please only use the task_decompostion.pdf file to determine what information is needed to complete the task.
+    Please note that the information will all be retrieved using the structural engineer.
     """,
     llm_config=gemma_config,
 )
 
 engineer = autogen.AssistantAgent(
     name="Engineer",
-    system_message= """Structural Engineer
-    "Expert in structural engineering. Based on the provided steps from the PDF, "
-    "please describe the steps needed for the conceptual design phase in structural engineering. "
-    "Please adhere to the following instructions:"
-    "\n1. Only select the steps from the task_decomposition.pdf."
-    "\n2. You cannot describe any other steps.""",
     llm_config=gemma_config,
+    system_message=task_decomposition_system_message,
 )
 
 writer = autogen.AssistantAgent(

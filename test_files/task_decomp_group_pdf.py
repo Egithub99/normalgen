@@ -54,6 +54,7 @@ planner = AssistantAgent(
                     Focus on identifying tasks that can be detailed and executed without code execution.
                     Here is the content from the PDF to guide you:
                     {compressed_text}
+                    Base your response solely on the content from the PDF.
             """,
     llm_config=llm_config,
 )
@@ -61,10 +62,13 @@ planner = AssistantAgent(
 # Engineer Agent
 engineer = AssistantAgent(
     name="Engineer",
-    system_message="""Structural Engineer. 
+    system_message=f"""Structural Engineer. 
                     Decompose the conceptual design task into detailed steps, focusing on structural engineering principles and practices. 
                     You decompose based on the PDF provided to you.
                     Provide a comprehensive task list that can be used to guide the design process.
+                    Here is the content from the PDF to guide you:
+                    {compressed_text}
+                    Base your response solely on the content from the PDF and only include the steps mentioned in it.
 """,
     llm_config=llm_config,
 )
@@ -72,8 +76,11 @@ engineer = AssistantAgent(
 # Writer Agent
 writer = AssistantAgent(
     name="Writer",
-    system_message="""Writer. Write a detailed description of the task decomposition for the conceptual design phase in structural engineering.
+    system_message=f"""Writer. Write a detailed description of the task decomposition for the conceptual design phase in structural engineering.
                      Use markdown format and place the content in a pseudo ```md``` code block. Include relevant titles and ensure the content is clear and informative.
+                     Here is the content from the PDF to guide you:
+                     {compressed_text}
+                     Base your response solely on the content from the PDF.
 """,
     llm_config=llm_config,
 )

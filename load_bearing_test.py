@@ -40,27 +40,28 @@ if len(compressed_table_content) > CONTEXT_LENGTH_LIMIT:
     compressed_table_content = compressed_table_content[:CONTEXT_LENGTH_LIMIT]
 
 # # Define system message and agent configuration
-system_message = (
-    "You are an expert in structural engineering. Based on the provided theory from the first document, "
-    "choose the most suitable construction type from Table 9.7: Approaches to Disproportionate Collapse, provided in the second document. "
-    "This selection is for a simple parking garage. "
-    "Please adhere to the following instructions:"
-    "\n1. Only select an option from Table 9.7."
-    "\n2. Mention the description from the first column of the chosen option."
-    "\n3. Specify the building class you consider appropriate for the parking garage."
-    "\n4. Provide a brief explanation for your choice of this load-bearing system, considering the provided theory."
-)
-
 # system_message = (
 #     "You are an expert in structural engineering. Based on the provided theory from the first document, "
 #     "choose the most suitable construction type from Table 9.7: Approaches to Disproportionate Collapse, provided in the second document. "
 #     "This selection is for a simple parking garage. "
 #     "Please adhere to the following instructions:"
 #     "\n1. Only select an option from Table 9.7."
-#     "\n2. Mention the option you choose from the first column of Table 9.7."
-#     "\n3. Specify the building class you consider appropriate for the parking garage."
+#     "\n2. Mention the description from the first column of the chosen option. "
+#     "\n3. Mention the building class you consider appropriate for the parking garage. "
 #     "\n4. Provide a brief explanation for your choice of this load-bearing system, considering the provided theory."
 # )
+
+system_message = (
+    "You are an expert in structural engineering. Based on the provided theory from the first document, "
+    "choose the most suitable construction type from the 'Construction type' column in Table 9.7: Approaches to Disproportionate Collapse, provided in the second document. "
+    "This selection is for a simple parking garage. "
+    "Please adhere to the following instructions:"
+    "\n1. Only select an option from the 'Construction type' column in Table 9.7."
+    "\n2. Mention the text of the chosen option from the 'Construction type' column. "
+    "\n3. Select the corresponding 'Building class' from the same row as the chosen 'Construction type'. "
+    "\n4. Mention the number below 'Building class', as well as the text in this column. "
+    "\n5. Provide a brief explanation for your choice of this construction type and building class, considering the provided theory."
+)
 
 
 gemma_config = {
