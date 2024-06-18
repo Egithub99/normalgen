@@ -70,3 +70,6 @@ try:
 
 except Exception as e:
     print(f"An error occurred while processing PDFs or initializing the agent: {e}")
+
+# Export the system message
+load_bearing_system_message = system_message
