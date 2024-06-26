@@ -39,7 +39,7 @@ try:
 
     # Define system message for the load-bearing agent
     system_message = (
-        "You are an expert in structural engineering. Based on the provided theory from the first document, "
+        "An expert in structural engineering. Based on the provided theory from the first document, "
         "choose the most suitable construction type from the 'Construction type' column in Table 9.7: Approaches to Disproportionate Collapse, provided in the second document. "
         "This selection is for a simple parking garage. "
         "Please adhere to the following instructions:"

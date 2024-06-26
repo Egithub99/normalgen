@@ -1,0 +1,1 @@
+Dit is even om een basis te maken voor de sequential chat. adhv het voorbeeld met agent A, Agent B etc.

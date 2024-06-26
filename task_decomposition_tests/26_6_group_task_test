@@ -1,0 +1,106 @@
+
+from typing import Callable, Dict, Literal, Optional, Union
+
+from typing_extensions import Annotated
+
+from autogen import (
+    Agent,
+    AssistantAgent,
+    ConversableAgent,
+    GroupChat,
+    GroupChatManager,
+    UserProxyAgent,
+    register_function)
+
+from autogen.cache import Cache
+
+# New configuration using gemma
+gemma = {
+    "config_list": [
+        {
+            "model": "lmstudio-ai/gemma-2b-it-GGUF/gemma-2b-it-q8_0.gguf",
+            "base_url": "http://localhost:1234/v1",
+            "api_key": "lm-studio",
+        },
+    ],
+    "cache_seed": None,  # Disable caching.
+}
+
+
+task = (
+    f"Write a plan for the conceptual design of a simple parking garage."
+)
+print(task)
+
+# LLM configuration
+llm_config = gemma
+
+# Create planner agent
+planner = AssistantAgent(
+    name="planner",
+    llm_config=llm_config,
+    system_message=(
+        "You are a helpful AI assistant specialized in structural engineering. You should suggest a feasible plan "
+        "for finishing a complex task by specifically decomposing it into exactly 2 major sub-tasks: "
+        "1. Load bearing system choice. "
+        "2. Material choice. "
+        "Ensure that no more than these two sub-tasks are suggested, and that they are sufficiently detailed."
+    ),
+    description="A helpful AI planner with strong natural language and planning skills."
+)
+
+# Create a planner user agent used to interact with the planner
+planner_user = UserProxyAgent(
+    name="planner_user",
+    human_input_mode="NEVER",
+    code_execution_config=False,
+)
+
+# The function for asking the planner
+def task_planner(question: str) -> str:
+    with Cache.disk(cache_seed=4) as cache:
+        planner_user.initiate_chat(planner, message=question, max_turns=1, cache=cache)
+    # Return the last message received from the planner
+    return planner_user.last_message()["content"]
+
+# Create assistant agent
+assistant = AssistantAgent(
+    name="assistant",
+    system_message=(
+        "You are a helpful AI assistant. "
+        "You can use the task planner to decompose a complex task into sub-tasks. "
+        "Make sure you follow through the sub-tasks."
+        "Follow through the sub-tasks and provide a comprehensive plan. "
+        "Give the user a final solution at the end. "
+        "Return TERMINATE only if the sub-tasks are completed."
+    ),
+    llm_config=llm_config,
+)
+
+# Create user proxy agent used to interact with the assistant
+user_proxy = UserProxyAgent(
+    name="user_proxy",
+    human_input_mode="ALWAYS",
+    is_termination_msg=lambda x: "content" in x
+    and x["content"] is not None
+    and x["content"].rstrip().endswith("TERMINATE"),
+    code_execution_config=False,
+)
+
+# Register the function to the agent pair
+register_function(
+    task_planner,
+    caller=assistant,
+    executor=user_proxy,
+    name="task_planner",
+    description="A task planner that can help you with decomposing a complex task into sub-tasks.",
+)
+
+# Use Cache.disk to cache LLM responses. Change cache_seed for different responses.
+with Cache.disk(cache_seed=1) as cache:
+    # The assistant receives a message from the user, which contains the task description
+    user_proxy.initiate_chat(
+        assistant,
+        message="Provide a comprehensive plan for the conceptual design in structural engineering.",
+        cache=cache,
+    )
