@@ -12,15 +12,11 @@ llm_config = {
 }
 
 
-tasks = [
-    """On which days in 2024 was Microsoft Stock higher than $400? Comment on the stock performance.""",
-    """Make a pleasant joke about it.""",
-]
 
 #Zou mijn task kunnen zijn eerst doe stap 1 t/m 4 en dan stap 5 t/m 10? Reviewer kijkt ook naar beide deelvragen ?
-# tasks = [
-#     """Help me with the conceptual design of a simple parking garage.""",
-# ]
+tasks = [
+    """Help me with the conceptual design of a simple parking garage.""",
+]
 
 inner_assistant = autogen.AssistantAgent(
     "Inner-assistant",
