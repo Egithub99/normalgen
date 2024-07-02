@@ -1,4 +1,5 @@
 import autogen
+from load_bearing_agent import load_bearing_agent
 
 llm_config = {
     "config_list": [
@@ -12,79 +13,68 @@ llm_config = {
 }
 
 tasks = [
-    """Develop a conceptual design for a simple 2 story parking garage."""
+    """Develop a structural design concept for a simple 2 story parking garage."""
 ]
 
 
 
 # Inner Agents
-load_bearing_agent = autogen.AssistantAgent(
-    "load_bearing_agent",
-    llm_config=llm_config,
-    system_message="""
-    You are a structural engineering expert with extensive knowledge about load-bearing systems for buildings.
-    Your task is to assist in selecting the most appropriate load-bearing system.
-    Only consider the above ground structure, do not make recommendations for the foundation or the roof.
-    Be very brief when answering.
 
-    """,
-    is_termination_msg=lambda x: x.get("content", "").find("TERMINATE") >= 0,
-)
 
 material_agent = autogen.AssistantAgent(
     "material_agent",
     llm_config=llm_config,
     system_message="""
     You are a structural engineering expert with extensive knowledge about materials for buildings.
+    Only consider the material choice for the load-bearing system. 
+    Do not consider the foundation or roof.
     You can only choose between steel and timber for now.
-    Based on the answer of the load bearing agent choose a material.
-    Be very brief when answering.
+    Your objective is to select the most appropriate material based on the task.
     """,
     is_termination_msg=lambda x: x.get("content", "").find("TERMINATE") >= 0,
 )
 
+# load_bearing_agent = autogen.AssistantAgent(
+#     "load_bearing_agent",
+#     llm_config=llm_config,
+#     system_message="""
+#     You are a structural engineering expert with extensive knowledge about load-bearing systems for buildings.
+#     Your select the most appropriate load-bearing system.
+#     Select an appropriate load-bearing system based on the answer of the material agent.
+#     Only consider the above ground structure, do not make recommendations for the foundation or the roof.
+
+#     """,
+#     is_termination_msg=lambda x: x.get("content", "").find("TERMINATE") >= 0,
+#     default_auto_reply="",
+# )
+#HIER HEB IK NET DEFAULT AUTO REPLY BIJGEZET.
+
+
 # Group Chat for Inner Agents
 inner_groupchat = autogen.GroupChat(
-    agents=[load_bearing_agent, material_agent],
+    agents=[material_agent, load_bearing_agent],
     messages=[],
     speaker_selection_method="round_robin",
     allow_repeat_speaker=False,
-    max_round=3,
+    max_round=6,
 )
 
 inner_manager = autogen.GroupChatManager(
     groupchat=inner_groupchat,
     is_termination_msg=lambda x: x.get("content", "").find("TERMINATE") >= 0,
     llm_config=llm_config,
-    code_execution_config={
-        "work_dir": "design",
-        "use_docker": False,
-    },
+    code_execution_config=False
 )
 
-# Outer Agent
-# load_bearing_agent = autogen.AssistantAgent(
-#     name="Load_bearing_agent",
-#     llm_config=llm_config,
-#     system_message="""
-#     You are a structural engineering expert with extensive knowledge about load-bearing systems for buildings.
-#     Your task is to assist in selecting the most appropriate load-bearing system for the conceptual design.
-#     Be very brief when answering.
-
-#     """,
-# )
 
 assistant_1 = autogen.AssistantAgent(
     name="Assistant_1",
-    # system_message=""""
-    #                 You are the lead-engineer in this design process. 
-                    
-    # """,
     system_message="""
                     You are the lead-engineer in this design process. 
                     Adhere to the following steps:
-                    The load bearing agent will decide on the load-bearing system.
                     The material agent will decide on the appropriate material choice.
+                    The load bearing agent will decide on the load-bearing system.
+                    
                     """,
     llm_config=llm_config,
 )
@@ -94,13 +84,9 @@ assistant_1 = autogen.AssistantAgent(
 #     name="Writer",
 #     llm_config=llm_config,
 #     system_message="""
-#     You are a professional writer.
-#     You transform complex concepts into a well structured text.
+#     You are a professional writer who provides a summary after a meeting.
 #     """,
 # )
-
-
-
 
 
 user = autogen.UserProxyAgent(
@@ -114,20 +100,17 @@ user = autogen.UserProxyAgent(
     },
 )
 
-# # # Message function for interaction
-# def load_bearing_message(recipient, messages, sender, config):
-#     return f"Choose a load-bearing system. \n\n {recipient.chat_messages_for_summary(sender)[-1]['content']}"
-
-
 
 # def writing_message(recipient, messages, sender, config):
-#     return f"Polish the content to make an engaging and nicely formatted blog post. \n\n {recipient.chat_messages_for_summary(sender)[-1]['content']}"
+#     return f"Polish the content. \n\n {recipient.chat_messages_for_summary(sender)[-1]['content']}"
 
 
+# Nested Chat Queue connecting inner agents to load_bearing_agent
 nested_chat_queue = [
-    {"recipient": inner_manager, "summary_method": "reflection_with_llm"},
+    {"recipient": inner_manager, "summary_method": "reflection_with_llm"}, 
     # {"recipient": writer, "message": writing_message, "summary_method": "last_msg", "max_turns": 1},
 ]
+
 assistant_1.register_nested_chats(
     nested_chat_queue,
     trigger=user,
@@ -141,12 +124,6 @@ res = user.initiate_chats(
             "message": tasks[0], 
             "max_turns": 1, 
             "summary_method": "last_msg",
-        },
-        # {
-        #     "recipient": load_bearing_agent,
-        #     "max_turns": 1,
-        #     "message": "Choose a load-bearing system.",
-        #     "summary_method": "last_msg",
-        # },
+        }
     ]
 )

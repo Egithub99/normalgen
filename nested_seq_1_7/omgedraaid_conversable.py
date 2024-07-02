@@ -20,7 +20,7 @@ tasks = [
 # Inner Agents
 
 
-material_agent = autogen.AssistantAgent(
+material_agent = autogen.ConversableAgent(
     "material_agent",
     llm_config=llm_config,
     system_message="""
@@ -29,11 +29,14 @@ material_agent = autogen.AssistantAgent(
     Do not consider the foundation or roof.
     You can only choose between steel and timber for now.
     Your objective is to select the most appropriate material based on the task.
+    Be very brief when answering.
     """,
     is_termination_msg=lambda x: x.get("content", "").find("TERMINATE") >= 0,
+    human_input_mode="ALWAYS",
+    code_execution_config=False
 )
 
-load_bearing_agent = autogen.AssistantAgent(
+load_bearing_agent = autogen.ConversableAgent(
     "load_bearing_agent",
     llm_config=llm_config,
     system_message="""
@@ -41,13 +44,13 @@ load_bearing_agent = autogen.AssistantAgent(
     Your select the most appropriate load-bearing system.
     Select an appropriate load-bearing system based on the answer of the material agent.
     Only consider the above ground structure, do not make recommendations for the foundation or the roof.
+    Be very brief when answering.
 
     """,
     is_termination_msg=lambda x: x.get("content", "").find("TERMINATE") >= 0,
-    default_auto_reply="",
+    human_input_mode="ALWAYS",
+    code_execution_config=False
 )
-#HIER HEB IK NET DEFAULT AUTO REPLY BIJGEZET.
-
 
 # Group Chat for Inner Agents
 inner_groupchat = autogen.GroupChat(
@@ -55,7 +58,7 @@ inner_groupchat = autogen.GroupChat(
     messages=[],
     speaker_selection_method="round_robin",
     allow_repeat_speaker=False,
-    max_round=6,
+    max_round=8,
 )
 
 inner_manager = autogen.GroupChatManager(
@@ -79,13 +82,14 @@ assistant_1 = autogen.AssistantAgent(
 )
 
 
-writer = autogen.AssistantAgent(
-    name="Writer",
-    llm_config=llm_config,
-    system_message="""
-    You are a professional writer who provides a summary after a meeting.
-    """,
-)
+# writer = autogen.AssistantAgent(
+#     name="Writer",
+#     llm_config=llm_config,
+#     system_message="""
+#     You are a professional writer.
+#     You transform complex concepts into a well structured text.
+#     """,
+# )
 
 
 user = autogen.UserProxyAgent(
@@ -100,16 +104,15 @@ user = autogen.UserProxyAgent(
 )
 
 
-def writing_message(recipient, messages, sender, config):
-    return f"Polish the content. \n\n {recipient.chat_messages_for_summary(sender)[-1]['content']}"
+# def writing_message(recipient, messages, sender, config):
+#     return f"Polish the content to make a nicely formatted document. \n\n {recipient.chat_messages_for_summary(sender)[-1]['content']}"
 
 
 # Nested Chat Queue connecting inner agents to load_bearing_agent
 nested_chat_queue = [
-    {"recipient": inner_manager, "summary_method": "reflection_with_llm"}, 
-    {"recipient": writer, "message": writing_message, "summary_method": "last_msg", "max_turns": 1},
+    {"recipient": inner_manager, "summary_method": "reflection_with_llm"},
+    # {"recipient": writer, "message": writing_message, "summary_method": "last_msg", "max_turns": 1},
 ]
-
 assistant_1.register_nested_chats(
     nested_chat_queue,
     trigger=user,

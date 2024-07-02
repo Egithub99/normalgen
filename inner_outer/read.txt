@@ -1,8 +1,0 @@
-Ik ben aan deze notebooks gekomen door in chatgpt het voorbeeld van de nested chats the gooien en te vragen het aan te passen.
-
-Stappenplan
-1. Eerst maar eens de eerste agent en de tweede agent verbinden
-2. De eerste agent zie ik gewoon als stap 1 en 2. agent 2 is de load-bearing agent
-
-
-Dit idee bevat een group chat binnen een bepaalde nested chat.
