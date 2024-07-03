@@ -33,6 +33,13 @@ tasks = [
 material_agent = autogen.ConversableAgent(
     "material_agent",
     llm_config=llm_config,
+    # system_message="""
+    # You are a structural engineering expert with extensive knowledge about materials for buildings.
+    # Only consider the material choice for the load-bearing system. 
+    # Do not consider the foundation or roof.
+    # You can only choose between steel and timber for now.
+    # Your objective is to select the most appropriate material based on the task.
+    # """,
     system_message="""
     You are a structural engineering expert with extensive knowledge about materials for buildings.
     Only consider the material choice for the load-bearing system. 
@@ -40,8 +47,8 @@ material_agent = autogen.ConversableAgent(
     You can only choose between steel and timber for now.
     Your objective is to select the most appropriate material based on the task.
     """,
-    # is_termination_msg=lambda x: x.get("content", "").find("TERMINATE") >= 0,
-    max_consecutive_auto_reply=1,
+    is_termination_msg=lambda x: x.get("content", "").find("TERMINATE") >= 0,
+    # max_consecutive_auto_reply=1,
     human_input_mode="NEVER"
 )
 
@@ -125,16 +132,32 @@ assistant_1.register_nested_chats(
     trigger=user,
 )
 
-#Initiate chat with the main task and step 1 explicitly included
+# Initiate chat with the main task and step 1 explicitly included
+# res = user.initiate_chats(
+#     [
+#         {
+#             "recipient": assistant_1, 
+#             "message": tasks[0], 
+#             "max_turns": 1, 
+#             "summary_method": "last_msg",
+#         }
+#     ]
+# )
+
 res = user.initiate_chats(
     [
         {
             "recipient": assistant_1, 
-            "message": tasks[0], 
+            "message": f"""For the following task: {tasks[0]}.
+
+                        The process overview for this task is:
+                        Step 1: The material agent will choose a suitable material.
+
+                        Step 2: The load-bearing agent will choose a suitable load-bearing system which is in line with the material choice.
+
+                        """, 
             "max_turns": 1, 
             "summary_method": "last_msg",
         }
     ]
 )
-
-
