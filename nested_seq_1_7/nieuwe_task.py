@@ -12,18 +12,10 @@ llm_config = {
     "cache_seed": None,  # Disable caching.
 }
 
-
-# tasks = [
-#     """Develop a structural design concept for a simple 2 story parking garage of about 1000 square meters."""
-# ]
-
 tasks = [
-    """Develop a structural design concept for a simple parking garage.
-        The parking garage will be placed on the TU Delft campus and should hold about 200 cars.
-        The users are employees and students from the TU Delft.
-        The parking garage should can be 2-3 stories high.
-        """
+    """Develop a structural design concept for a simple 2 story parking garage of about 1000 square meters."""
 ]
+
 
 
 # Inner Agents
@@ -41,7 +33,7 @@ material_agent = autogen.ConversableAgent(
     Your objective is to select the most appropriate material based on the task.
     """,
     # is_termination_msg=lambda x: x.get("content", "").find("TERMINATE") >= 0,
-    max_consecutive_auto_reply=1,
+    # max_consecutive_auto_reply=1,
     human_input_mode="NEVER"
 )
 
@@ -68,33 +60,23 @@ inner_manager = autogen.GroupChatManager(
 assistant_1 = autogen.AssistantAgent(
     name="Assistant_1",
     system_message="""
-                    You are the lead-engineer in this design process.
+                    You are the lead-engineer in this design process. 
+                    Adhere to the following steps:
+                    The material agent will decide on the appropriate material choice.
+                    The load bearing agent will decide on the load-bearing system.
+                    
                     """,
     llm_config=llm_config,
-    human_input_mode="ALWAYS"
 )
 
-# assistant_1 = autogen.AssistantAgent(
-#     name="Assistant_1",
-#     system_message="""
-#                     You are the lead-engineer in this design process. 
-#                     Adhere to the following steps:
-#                     The material agent will decide on the appropriate material choice.
-#                     The load bearing agent will decide on the load-bearing system.
-                    
-#                     """,
-#     llm_config=llm_config,
-# )
 
-
-
-# writer = autogen.AssistantAgent(
-#     name="Writer",
-#     llm_config=llm_config,
-#     system_message="""
-#     You are a professional writer who provides a summary after a meeting.
-#     """,
-# )
+writer = autogen.AssistantAgent(
+    name="Writer",
+    llm_config=llm_config,
+    system_message="""
+    You are a professional writer who provides a summary after a meeting.
+    """,
+)
 
 
 user = autogen.UserProxyAgent(
@@ -109,8 +91,8 @@ user = autogen.UserProxyAgent(
 )
 
 
-# def writing_message(recipient, messages, sender, config):
-#     return f"Polish the content so it is easy to read. \n\n {recipient.chat_messages_for_summary(sender)[-1]['content']}"
+def writing_message(recipient, messages, sender, config):
+    return f"Polish the content. \n\n {recipient.chat_messages_for_summary(sender)[-1]['content']}"
 
 
 # Nested Chat Queue connecting inner agents to load_bearing_agent

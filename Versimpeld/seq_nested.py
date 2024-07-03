@@ -1,5 +1,4 @@
 import autogen
-from load_bearing_agent import load_bearing_agent
 
 llm_config = {
     "config_list": [
@@ -13,17 +12,17 @@ llm_config = {
 }
 
 
-# tasks = [
-#     """Develop a structural design concept for a simple 2 story parking garage of about 1000 square meters."""
-# ]
-
 tasks = [
-    """Develop a structural design concept for a simple parking garage.
-        The parking garage will be placed on the TU Delft campus and should hold about 200 cars.
-        The users are employees and students from the TU Delft.
-        The parking garage should can be 2-3 stories high.
-        """
+    """Develop a structural design concept for a simple 2 story parking garage of about 1000 square meters."""
 ]
+
+# tasks = [
+#     """Develop a structural design concept for a simple parking garage.
+#         The parking garage will be placed on the TU Delft campus and should hold about 200 cars.
+#         The users are employees and students from the TU Delft.
+#         The parking garage should can be 2-3 stories high.
+#         """
+# ]
 
 
 # Inner Agents
@@ -34,11 +33,21 @@ material_agent = autogen.ConversableAgent(
     "material_agent",
     llm_config=llm_config,
     system_message="""
-    You are a structural engineering expert with extensive knowledge about materials for buildings.
-    Only consider the material choice for the load-bearing system. 
-    Do not consider the foundation or roof.
-    You can only choose between steel and timber for now.
-    Your objective is to select the most appropriate material based on the task.
+                    As the material agent you choose a suitable material for the load-bearing agent.
+                    For the time being you choose steel.
+    """,
+    # is_termination_msg=lambda x: x.get("content", "").find("TERMINATE") >= 0,
+    max_consecutive_auto_reply=1,
+    human_input_mode="NEVER"
+)
+
+
+load_bearing_agent = autogen.ConversableAgent(
+    "material_agent",
+    llm_config=llm_config,
+    system_message="""
+                    As the load-bearing agent you choose a suitable load-bearing system.
+                    for the time being choose a steel frame.
     """,
     # is_termination_msg=lambda x: x.get("content", "").find("TERMINATE") >= 0,
     max_consecutive_auto_reply=1,
@@ -73,19 +82,6 @@ assistant_1 = autogen.AssistantAgent(
     llm_config=llm_config,
     human_input_mode="ALWAYS"
 )
-
-# assistant_1 = autogen.AssistantAgent(
-#     name="Assistant_1",
-#     system_message="""
-#                     You are the lead-engineer in this design process. 
-#                     Adhere to the following steps:
-#                     The material agent will decide on the appropriate material choice.
-#                     The load bearing agent will decide on the load-bearing system.
-                    
-#                     """,
-#     llm_config=llm_config,
-# )
-
 
 
 # writer = autogen.AssistantAgent(

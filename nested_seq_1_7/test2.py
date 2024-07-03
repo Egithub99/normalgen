@@ -13,17 +13,18 @@ llm_config = {
 }
 
 
-# tasks = [
-#     """Develop a structural design concept for a simple 2 story parking garage of about 1000 square meters."""
-# ]
-
 tasks = [
-    """Develop a structural design concept for a simple parking garage.
-        The parking garage will be placed on the TU Delft campus and should hold about 200 cars.
-        The users are employees and students from the TU Delft.
-        The parking garage should can be 2-3 stories high.
-        """
+    """Develop a structural design concept for a simple 2 story parking garage of about 20 by 20 meters."""
 ]
+
+# tasks = [
+#     """Develop a structural design concept for a simple parking garage.
+#         The parking garage will be placed on the TU Delft campus and should hold about 200 cars.
+#         The users are employees and students from the TU Delft.
+#         The parking garage should can be 2-3 stories high.
+#         The parking garage should be 20 by 20 meters.
+#         """
+# ]
 
 
 # Inner Agents
@@ -35,13 +36,12 @@ material_agent = autogen.ConversableAgent(
     llm_config=llm_config,
     system_message="""
     You are a structural engineering expert with extensive knowledge about materials for buildings.
-    Only consider the material choice for the load-bearing system. 
-    Do not consider the foundation or roof.
+    Only consider the material choice for the load-bearing system, not for cladding, the foundation or the roof.
     You can only choose between steel and timber for now.
     Your objective is to select the most appropriate material based on the task.
     """,
     # is_termination_msg=lambda x: x.get("content", "").find("TERMINATE") >= 0,
-    max_consecutive_auto_reply=1,
+    # max_consecutive_auto_reply=1,
     human_input_mode="NEVER"
 )
 
@@ -61,7 +61,7 @@ inner_manager = autogen.GroupChatManager(
     is_termination_msg=lambda x: x.get("content", "").find("TERMINATE") >= 0,
     llm_config=llm_config,
     code_execution_config=False,
-    human_input_mode="ALWAYS"
+    human_input_mode="NEVER"
 )
 
 
@@ -71,21 +71,8 @@ assistant_1 = autogen.AssistantAgent(
                     You are the lead-engineer in this design process.
                     """,
     llm_config=llm_config,
-    human_input_mode="ALWAYS"
+    human_input_mode="NEVER"
 )
-
-# assistant_1 = autogen.AssistantAgent(
-#     name="Assistant_1",
-#     system_message="""
-#                     You are the lead-engineer in this design process. 
-#                     Adhere to the following steps:
-#                     The material agent will decide on the appropriate material choice.
-#                     The load bearing agent will decide on the load-bearing system.
-                    
-#                     """,
-#     llm_config=llm_config,
-# )
-
 
 
 # writer = autogen.AssistantAgent(
@@ -136,4 +123,3 @@ res = user.initiate_chats(
         }
     ]
 )
-
