@@ -13,9 +13,12 @@ llm_config = {
 }
 
 tasks = [
-    """Develop a structural design concept for a simple 2 story parking garage of about 1000 square meters."""
+    """Develop a structural design concept for a simple parking garage.
+        The parking garage will be placed on the TU Delft campus and should hold about 200 cars.
+        The users are employees and students from the TU Delft.
+        The parking garage can be 2-3 stories high.
+    """
 ]
-
 
 
 # Inner Agents
@@ -31,6 +34,7 @@ material_agent = autogen.ConversableAgent(
     Do not consider the foundation or roof.
     You can only choose between steel and timber for now.
     Your objective is to select the most appropriate material based on the task.
+    Reply "TERMINATE" in the end when everything is done.
     """,
     # is_termination_msg=lambda x: x.get("content", "").find("TERMINATE") >= 0,
     # max_consecutive_auto_reply=1,
@@ -64,6 +68,7 @@ assistant_1 = autogen.AssistantAgent(
                     Adhere to the following steps:
                     The material agent will decide on the appropriate material choice.
                     The load bearing agent will decide on the load-bearing system.
+                    Reply "TERMINATE" in the end when everything is done.
                     
                     """,
     llm_config=llm_config,

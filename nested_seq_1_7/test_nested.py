@@ -30,27 +30,28 @@ material_agent = autogen.ConversableAgent(
     You can only choose between steel and timber for now.
     Your objective is to select the most appropriate material based on the task.
     """,
-    is_termination_msg=lambda x: x.get("content", "").find("TERMINATE") >= 0,
+    # is_termination_msg=lambda x: x.get("content", "").find("TERMINATE") >= 0,
+    max_consecutive_auto_reply=1,
     human_input_mode="NEVER"
 )
 
-# Group Chat for Inner Agents
-synthesis = autogen.GroupChat(
-    agents=[material_agent, load_bearing_agent],
-    messages=[],
-    speaker_selection_method="round_robin",
-    allow_repeat_speaker=False,
-    max_round=3,
-    send_introductions=False
-)
+# # Group Chat for Inner Agents
+# synthesis = autogen.GroupChat(
+#     agents=[material_agent, load_bearing_agent],
+#     messages=[],
+#     speaker_selection_method="round_robin",
+#     allow_repeat_speaker=False,
+#     max_round=3,
+#     send_introductions=False
+# )
 
-inner_manager = autogen.GroupChatManager(
-    groupchat=synthesis,
-    is_termination_msg=lambda x: x.get("content", "").find("TERMINATE") >= 0,
-    llm_config=llm_config,
-    code_execution_config=False,
-    human_input_mode="NEVER"
-)
+# inner_manager = autogen.GroupChatManager(
+#     groupchat=synthesis,
+#     is_termination_msg=lambda x: x.get("content", "").find("TERMINATE") >= 0,
+#     llm_config=llm_config,
+#     code_execution_config=False,
+#     human_input_mode="NEVER"
+# )
 
 assistant_1 = autogen.AssistantAgent(
     name="Assistant_1",
@@ -72,19 +73,36 @@ user = autogen.UserProxyAgent(
     },
 )
 
-def summarize_to_user(recipient, messages, sender, config):
-    return f"Summary of the group chat: \n\n {recipient.chat_messages_for_summary(sender)[-1]['content']}"
 
-# Nested Chat Queue connecting inner agents to load_bearing_agent and summary to user
-nested_chat_queue = [
-    {"recipient": inner_manager, "summary_method": "reflection_with_llm"},
-    {"recipient": user, "message": summarize_to_user, "summary_method": "last_msg", "max_turns": 1},
-]
+# # Nested Chat Queue connecting inner agents to load_bearing_agent and summary to user
+# nested_chat_queue = [
+#     {"recipient": material_agent, "summary_method": "last_msg"},
+#     {"recipient": load_bearing_agent, "summary_method": "last_msg"},
+# ]
 
-assistant_1.register_nested_chats(
-    nested_chat_queue,
-    trigger=user,
-)
+# assistant_1.register_nested_chats(
+#     nested_chat_queue,
+#     trigger=user,
+# )
+
+# Initiate chat with the main task and step 1 explicitly included
+# res = user.initiate_chats(
+#     [
+#         {
+#             "recipient": assistant_1, 
+#             "message": f"""For the following task: {tasks[0]}.
+
+#                         The process overview for this task is:
+#                         Step 1: The material agent will choose a suitable material.
+
+#                         Step 2: The load-bearing agent will choose a suitable load-bearing system which is in line with the material choice.
+
+#                         """, 
+#             "max_turns": 1, 
+#             "summary_method": "last_msg",
+#         }
+#     ]
+# )
 
 # Initiate chat with the main task and step 1 explicitly included
 res = user.initiate_chats(
@@ -104,4 +122,3 @@ res = user.initiate_chats(
         }
     ]
 )
-
