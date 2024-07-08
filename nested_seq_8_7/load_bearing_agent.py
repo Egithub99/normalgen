@@ -22,7 +22,10 @@ table_text = extract_text_from_pdf(TABLE_PDF_PATH)
 
 # Compress the extracted texts
 llm_lingua = LLMLingua()
-text_compressor = TextMessageCompressor(text_compressor=llm_lingua)
+text_compressor = TextMessageCompressor(
+    text_compressor=llm_lingua,
+    cache=None,
+    )
 compressed_theory_text = text_compressor.apply_transform([{"content": theory_text}])
 compressed_table_text = text_compressor.apply_transform([{"content": table_text}])
 
@@ -65,7 +68,8 @@ if len(compressed_table_content) > CONTEXT_LENGTH_LIMIT:
 
 
 load_system_message = (
-    "You are an expert in structural engineering."
+    "You are an expert in load-bearing systems. "
+    "Based on the chosen material, provide the best load-bearing system option according to the requirements provided to you."
     "Based on the provided theory from the first document, "
     "choose the most suitable construction type from the 'Construction type' column in Table 9.7: Approaches to Disproportionate Collapse, provided in the second document. "
     "Please adhere to the following instructions:"
@@ -96,20 +100,20 @@ load_bearing_agent = autogen.ConversableAgent(
     human_input_mode="NEVER",
 )
 
-# # Function to choose the load-bearing system
-# def choose_load_bearing_system(agent, theory_text, table_text):
-#     messages = [
-#         {"role": "system", "content": system_message},
-#         {"role": "user", "content": "Here is the relevant theory from the PDF:\n" + theory_text},
-#         {"role": "user", "content": "Here is the table (Table 9.7) from which you should choose an option. "
-#                                     "Mention the description from the first column of your chosen option and the appropriate building class:\n" + table_text}
-#     ]
-#     response = agent.generate_reply(messages)
-#     return response
+# Function to choose the load-bearing system
+def choose_load_bearing_system(agent, theory_text, table_text):
+    messages = [
+        {"role": "system", "content": load_system_message},
+        {"role": "user", "content": "Here is the relevant theory from the PDF:\n" + theory_text},
+        {"role": "user", "content": "Here is the table (Table 9.7) from which you should choose an option. "
+                                    "Mention the description from the first column of your chosen option and the appropriate building class:\n" + table_text}
+    ]
+    response = agent.generate_reply(messages)
+    return response
 
 
 
 
-# # Get the response from the load-bearing agent
-# response = choose_load_bearing_system(load_bearing_agent, compressed_theory_content, compressed_table_content)
-# print(response)
+# Get the response from the load-bearing agent
+response = choose_load_bearing_system(load_bearing_agent, compressed_theory_content, compressed_table_content)
+print(response)
