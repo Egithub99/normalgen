@@ -1,5 +1,5 @@
 import autogen
-# from load_bearing_agent import load_bearing_agent
+from load_bearing_agent import load_bearing_agent
 
 llm_config = {
     "config_list": [
@@ -43,12 +43,12 @@ material_agent = autogen.AssistantAgent(
     llm_config=llm_config,
 )
 
-# Define the Load-Bearing Agent
-load_bearing_agent = autogen.AssistantAgent(
-    name="Load_Bearing_Agent",
-    system_message="You are an expert in load-bearing systems. Based on the chosen material, provide the best load-bearing system option according to the requirements provided to you.",
-    llm_config=llm_config,
-)
+# # Define the Load-Bearing Agent
+# load_bearing_agent = autogen.AssistantAgent(
+#     name="Load_Bearing_Agent",
+#     system_message="You are an expert in load-bearing systems. Based on the chosen material, provide the best load-bearing system option according to the requirements provided to you.",
+#     llm_config=llm_config,
+# )
 
 # Define the User Proxy Agent
 user_proxy = autogen.UserProxyAgent(
@@ -85,7 +85,7 @@ chat_results = lead_engineer.initiate_chats(
             "recipient": writer,
             "message": "Summarize the conversation",
             "max_turns": 1,
-            "summary_method": "last_msg",
+            "summary_method": "reflection_with_llm",
         },
     ]
 )

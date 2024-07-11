@@ -1,9 +1,11 @@
 import autogen
 
+
+
 llm_config = {
     "config_list": [
         {
-            "model": "lmstudio-ai/gemma-2b-it-GGUF/gemma-2b-it-q8_0.gguf",
+            "model": "TheBloke/Mistral-7B-Instruct-v0.1-GGUF/mistral-7b-instruct-v0.1.Q5_0.gguf",
             "base_url": "http://localhost:1234/v1",
             "api_key": "lm-studio",
         },

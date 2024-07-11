@@ -14,17 +14,24 @@ llm_config_memgpt = [
     },
 ]
 
-# MemGPT-powered agents will also use local LLMs, but they need additional setup (also they use the Completions endpoint)
-llm_config_memgpt = [
-    {
-        "preset": "memgpt_chat",
-        "model": None,
-        "model_wrapper": "airoboros-l2-70b-2.1",
-        "model_endpoint_type": "lmstudio",
-        "model_endpoint": "http://localhost:1234",  # port 1234 for LM Studio
-        "context_window": 8192,
-    },
-]
+# # MemGPT-powered agents will also use local LLMs, but they need additional setup (also they use the Completions endpoint)
+# llm_config_memgpt = [
+#     {
+#         "preset": "memgpt_chat",
+#         "model": None,
+#         "model_wrapper": "airoboros-l2-70b-2.1",
+#         "model_endpoint_type": "lmstudio",
+#         "model_endpoint": "http://localhost:1234",  # port 1234 for LM Studio
+#         "context_window": 8192,
+#     },
+# ]
 
 
 
+from memgpt import create_client
+
+# Connect to the server as a user
+client = create_client()
+
+# List data source names that belong to user
+client.list_sources()
