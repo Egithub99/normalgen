@@ -35,8 +35,7 @@ else:
 
 query_engine3 = index3.as_query_engine()
 
-
 response4 = query_engine3.query(
-    "What are six key steps in the conceptual design phase?"
+    "What is the first decision in a conceptual design? "
 )
 print(response4)

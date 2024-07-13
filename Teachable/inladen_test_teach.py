@@ -21,7 +21,7 @@ Settings.llm = LMStudio(
 )
 
 # check if storage already exists
-PERSIST_DIR = "./storage"
+PERSIST_DIR = "./storage_testing5"
 if not os.path.exists(PERSIST_DIR):
     # load the documents and create the index
     documents3 = LlamaParse().load_data("./data5/8_developing-a-concept.pdf")
@@ -36,7 +36,7 @@ else:
 query_engine3 = index3.as_query_engine()
 
 
-response4 = query_engine3.query(
-    "What are six key steps in the conceptual design phase?"
-)
-print(response4)
+# response4 = query_engine3.query(
+#     "What are six key steps in the conceptual design phase?"
+# )
+# print(response4)
