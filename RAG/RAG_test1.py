@@ -45,9 +45,7 @@ ragproxyagent = RetrieveUserProxyAgent(
     retrieve_config={
         "task": "qa",
         "docs_path": [
-                    "8_developing-a-concept.pdf",
-                    "9_stability-robustness.pdf",
-                    "table_9_7.pdf"
+                    "table_9_7.pdf",
                     ],
         "custom_text_types": ["pdf"],  # Specify the file type to be processed
         "chunk_token_size": 2000,  # Reduce chunk size
@@ -64,7 +62,7 @@ ragproxyagent = RetrieveUserProxyAgent(
 # Reset the assistant before starting a new conversation
 assistant.reset()
 
-qa_problem = "What is the best material to construct a 20 by 20 meters 2 story parking garage in?"
+qa_problem = "Name some construction types"
 chat_result = ragproxyagent.initiate_chat(
     assistant, 
     message=ragproxyagent.message_generator, 

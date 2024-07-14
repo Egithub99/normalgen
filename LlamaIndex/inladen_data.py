@@ -21,7 +21,7 @@ Settings.llm = LMStudio(
 )
 
 # check if storage already exists
-PERSIST_DIR = "./storage"
+PERSIST_DIR = "./storage_test_nieuw"
 if not os.path.exists(PERSIST_DIR):
     # load the documents and create the index
     documents3 = LlamaParse().load_data("./data5/8_developing-a-concept.pdf")

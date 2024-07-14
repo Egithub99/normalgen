@@ -7,6 +7,8 @@ from llama_parse import LlamaParse
 from llama_index.core import VectorStoreIndex, StorageContext, load_index_from_storage, Settings
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.llms.lmstudio import LMStudio
+from typing_extensions import Annotated
+from autogen import register_function
 
 # Apply nested asyncio
 nest_asyncio.apply()
@@ -55,45 +57,21 @@ else:
 # Create a query engine from the index
 query_engine = index.as_query_engine()
 
-# Define a new agent for connecting to the vector database
-vector_db_agent = autogen.AssistantAgent(
-    name="VectorDBAgent",
-    system_message="Responsible for querying the vector database.",
-    llm_config=llm_config,
-)
 
-# Function for the VectorDBAgent to query the vector database
-def query_vector_database(query: str) -> str:
-    # Query the vector database using the query engine
-    return query_engine.query(query)
-
-# Integrate the vector database querying functionality into the VectorDBAgent
-vector_db_agent.query_database = query_vector_database
-
-# Simple interface to ask questions to the VectorDBAgent
-def ask_vector_db_agent(question: str) -> str:
-    response = vector_db_agent.query_database(question)
-    print(response)
-    return response  # Return the response as a string
-
-
-# Example query to the VectorDBAgent
-ask_vector_db_agent("Name six key steps in the conceptual design.")
 
 
 from autogen import ConversableAgent
 
-# Let's first define the assistant agent that suggests tool calls.
+# Define the assistant agent that suggests tool calls
 assistant = ConversableAgent(
     name="Assistant",
     system_message="You are a helpful AI assistant. "
-    "You can help with reading documents. "
+    "Use the query_and_ask_vector_db function to come to an answer. "
     "Return 'TERMINATE' when the task is done.",
     llm_config=llm_config,
 )
 
-# The user proxy agent is used for interacting with the assistant agent
-# and executes tool calls.
+# The user proxy agent is used for interacting with the assistant agent and executes tool calls
 user_proxy = ConversableAgent(
     name="User",
     llm_config=False,
@@ -101,34 +79,51 @@ user_proxy = ConversableAgent(
     human_input_mode="NEVER",
 )
 
+# Combined function to query the vector database and print the response
+def query_and_ask_vector_db(question: Annotated[str, "The question to ask the VectorDB"]) -> Annotated[str, "The response from the VectorDB"]:
+    # Query the vector database using the query engine
+    response = query_engine.query(question)
+    # print(response)
+    return response  # Return the response as a string
 
-# Register the tool signature with the assistant agent.
-assistant.register_for_llm(name="RAG_test", description="Interacting with the database")(ask_vector_db_agent)
+# # Register the combined function as a tool
+# register_function(
+#     query_and_ask_vector_db,
+#     caller=assistant,
+#     executor=user_proxy,
+#     name="query_and_ask_vector_db",
+#     description="A vector database with all the relevant theory.",
+# )
 
-# Register the tool function with the user proxy agent.
-user_proxy.register_for_execution(name="RAG_test")(ask_vector_db_agent)
 
+# # Register the tool signature with the assistant agent
+# assistant.register_for_llm(name="RAG_test", description="Interacting with the database")(query_and_ask_vector_db)
+
+# # Register the tool function with the user proxy agent
+# user_proxy.register_for_execution(name="RAG_test")(query_and_ask_vector_db)
 
 # Start the sequence of chats with extended max_turns for feedback incorporation
 chat_results = user_proxy.initiate_chats(
     [
         {
             "recipient": assistant,
-            "message": "Name six key steps in the conceptual design.",
+            "message": f"Name six key steps in the conceptual design.",
             "max_turns": 1,
             "summary_method": "last_msg",
         },
     ]
 )
 
-# # Start the sequence of chats with extended max_turns for feedback incorporation
 # chat_results = user_proxy.initiate_chats(
 #     [
 #         {
 #             "recipient": assistant,
-#             "message": "Name six key steps in the conceptual design.",
+#             "message": f"{query_and_ask_vector_db('Name six key steps in the conceptual design.')}",
 #             "max_turns": 1,
 #             "summary_method": "last_msg",
 #         },
 #     ]
 # )
+
+# Example query to the VectorDB
+# query_and_ask_vector_db("Name six key steps in the conceptual design.")
